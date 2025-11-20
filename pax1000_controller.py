@@ -1,3 +1,5 @@
+# modified version of https://github.com/Thorlabs/Light_Analysis_Examples/blob/main/Python/Thorlabs%20PAX1000%20Polarimeters/PAX1000%20using%20ctypes%20-%20Python%203.py
+
 import time
 from ctypes import *
 import math
