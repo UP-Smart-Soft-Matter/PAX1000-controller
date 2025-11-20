@@ -6,7 +6,6 @@ import math
 
 
 class PAX1000:
-
     def __init__(self, wavelength=491e-9, scan_rate=60, measurement_mode=9):
         """
         Interface for controlling and reading data from a PAX1000 polarization measurement device.
