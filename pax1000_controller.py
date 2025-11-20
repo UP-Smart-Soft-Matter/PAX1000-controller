@@ -4,7 +4,16 @@ import math
 
 
 class PAX1000:
-    def __init__(self, wavelength=633e-9, scan_rate=60, measurement_mode=9):
+
+    def __init__(self, wavelength=491e-9, scan_rate=60, measurement_mode=9):
+        """
+        Interface for controlling and reading data from a PAX1000 polarization measurement device.
+
+        Attributes:
+            wavelength (float), optional: Wavelength in meters for the measurement (default: 491e-9 m).
+            scan_rate (float), optional: Scan rate in Hz (default: 60 Hz).
+            measurement_mode (int), optional: Measurement mode of the PAX1000 (default: 9).
+        """
         # Load DLL library
         self.__lib = cdll.LoadLibrary("C:\Program Files\IVI Foundation\VISA\Win64\Bin\TLPAX_64.dll")
 
@@ -17,13 +26,14 @@ class PAX1000:
 
         # Check how many PAX1000 are connected
         self.__lib.TLPAX_findRsrc(self.__instrumentHandle, byref(self.__deviceCount))
-        if self.__deviceCount.value < 1 :
+        if self.__deviceCount.value < 1:
             print("No PAX1000 device found.")
             exit()
 
         # Connect to the first available PAX1000
         self.__lib.TLPAX_getRsrcName(self.__instrumentHandle, 0, self.__resource)
-        if not (0 == self.__lib.TLPAX_init(self.__resource.value, self.__IDQuery, self.__resetDevice, byref(self.__instrumentHandle))):
+        if not (0 == self.__lib.TLPAX_init(self.__resource.value, self.__IDQuery, self.__resetDevice,
+                                           byref(self.__instrumentHandle))):
             print("Error with initialization.")
             exit()
 
@@ -47,8 +57,14 @@ class PAX1000:
         time.sleep(5)
 
     def __measure(self):
-        # Take 5 measurements and output values
-        revolutionCounter = c_int()
+        """
+        Retrieves the latest polarization measurement from the PAX1000.
+
+        Performs a single measurement, returning the azimuth and ellipticity in degrees.
+
+        Returns:
+            tuple: (azimuth, ellipticity) in degrees.
+        """
         scanID = c_int()
         self.__lib.TLPAX_getLatestScan(self.__instrumentHandle, byref(scanID))
 
@@ -62,11 +78,25 @@ class PAX1000:
         return math.degrees(azimuth.value), math.degrees(ellipticity.value)
 
     def measure_azimuth(self):
+        """
+        Measures the azimuth of polarization from the PAX1000.
+
+        Returns:
+            float: Azimuth in degrees.
+        """
         return self.__measure()[0]
 
     def measure_ellipticity(self):
+        """
+        Measures the ellipticity of polarization from the PAX1000.
+
+        Returns:
+            float: Ellipticity in degrees.
+        """
         return self.__measure()[1]
 
     def close(self):
-        # Close
+        """
+        Closes the connection to the PAX1000 device and releases resources.
+        """
         self.__lib.TLPAX_close(self.__instrumentHandle)
