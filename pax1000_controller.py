@@ -9,7 +9,7 @@ class PAX1000:
         """
         Interface for controlling and reading data from a PAX1000 polarization measurement device.
 
-        Attributes:
+        Parameters:
             wavelength (float), optional: Wavelength in meters for the measurement (default: 491e-9 m).
             scan_rate (float), optional: Scan rate in Hz (default: 60 Hz).
             measurement_mode (int), optional: Measurement mode of the PAX1000 (default: 9).
