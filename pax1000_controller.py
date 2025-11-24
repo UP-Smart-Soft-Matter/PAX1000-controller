@@ -5,6 +5,13 @@ from ctypes import *
 import math
 
 
+class DeviceNotFound(Exception):
+    pass
+
+class InitialisationError(Exception):
+    pass
+
+
 class PAX1000:
     def __init__(self, wavelength=491e-9, scan_rate=60, measurement_mode=9):
         """
@@ -29,14 +36,14 @@ class PAX1000:
         self.__lib.TLPAX_findRsrc(self.__instrumentHandle, byref(self.__deviceCount))
         if self.__deviceCount.value < 1:
             print("No PAX1000 device found.")
-            exit()
+            raise DeviceNotFound
 
         # Connect to the first available PAX1000
         self.__lib.TLPAX_getRsrcName(self.__instrumentHandle, 0, self.__resource)
         if not (0 == self.__lib.TLPAX_init(self.__resource.value, self.__IDQuery, self.__resetDevice,
                                            byref(self.__instrumentHandle))):
             print("Error with initialization.")
-            exit()
+            raise InitialisationError
 
         # Short break to make sure the device is correctly initialized
         time.sleep(2)
