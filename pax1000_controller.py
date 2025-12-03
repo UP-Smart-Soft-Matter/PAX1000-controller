@@ -81,7 +81,7 @@ class PAX1000:
         self.__lib.TLPAX_getPolarization(self.__instrumentHandle, scanID.value, byref(azimuth), byref(ellipticity))
 
         self.__lib.TLPAX_releaseScan(self.__instrumentHandle, scanID)
-        time.sleep(0.5)
+        time.sleep(0.05)
 
         return math.degrees(azimuth.value), math.degrees(ellipticity.value)
 
