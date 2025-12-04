@@ -64,7 +64,7 @@ class PAX1000:
         # Short break
         time.sleep(5)
 
-    def __measure(self):
+    def measure(self):
         """
         Retrieves the latest polarization measurement from the PAX1000.
 
@@ -79,29 +79,37 @@ class PAX1000:
         azimuth = c_double()
         ellipticity = c_double()
         self.__lib.TLPAX_getPolarization(self.__instrumentHandle, scanID.value, byref(azimuth), byref(ellipticity))
+        s0 = c_double()
+        s1 = c_double()
+        s2 = c_double()
+        s3 = c_double()
+        self.__lib.TLPAX_getStokes(self.__instrumentHandle, scanID.value, byref(s0), byref(s1), byref(s2), byref(s3))
 
         self.__lib.TLPAX_releaseScan(self.__instrumentHandle, scanID)
         time.sleep(0.05)
 
-        return math.degrees(azimuth.value), math.degrees(ellipticity.value)
+        dop = math.sqrt((s1.value**2)+(s2.value**2)+(s3.value**2)/(s0.value**2))
+        dolp = math.sqrt((s1.value**2)+(s2.value**2)/(s0.value**2))
+        docp = math.sqrt((s3.value**2)/(s0.value**2))
+        power_pol = s1.value + s2.value + s3.value
+        power_upol = s0.value - power_pol
 
-    def measure_azimuth(self):
-        """
-        Measures the azimuth of polarization from the PAX1000.
 
-        Returns:
-            float: Azimuth in degrees.
-        """
-        return self.__measure()[0]
-
-    def measure_ellipticity(self):
-        """
-        Measures the ellipticity of polarization from the PAX1000.
-
-        Returns:
-            float: Ellipticity in degrees.
-        """
-        return self.__measure()[1]
+        return {"azimuth": math.degrees(azimuth.value),
+                "ellipticity": math.degrees(ellipticity.value),
+                "S0": s0.value,
+                "S1": s1.value,
+                "S2": s2.value,
+                "S3": s3.value,
+                "s0": s0.value / s0.value,
+                "s1": s1.value / s0.value,
+                "s2": s2.value / s0.value,
+                "s3": s3.value / s0.value,
+                "dop": dop,
+                "dolp": dolp,
+                "docp": docp,
+                "power_pol": power_pol,
+                "power_upol": power_upol}
 
     def close(self):
         """
