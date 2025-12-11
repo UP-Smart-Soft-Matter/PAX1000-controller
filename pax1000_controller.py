@@ -3,6 +3,7 @@
 import time
 from ctypes import *
 import math
+import copy
 
 
 class DeviceNotFound(Exception):
@@ -95,17 +96,17 @@ class PAX1000:
         power_upol = s0.value - power_pol
 
 
-        return {"azimuth": math.degrees(azimuth.value),
-                "ellipticity": math.degrees(ellipticity.value),
-                "S0": s0.value,
-                "S1": s1.value,
-                "S2": s2.value,
-                "S3": s3.value,
-                "dop": dop,
-                "dolp": dolp,
-                "docp": docp,
-                "power_pol": power_pol,
-                "power_upol": power_upol}
+        return {"azimuth": copy.deepcopy(math.degrees(azimuth.value)),
+                "ellipticity": copy.deepcopy(math.degrees(ellipticity.value)),
+                "S0": copy.deepcopy(s0.value),
+                "S1": copy.deepcopy(s1.value),
+                "S2": copy.deepcopy(s2.value),
+                "S3": copy.deepcopy(s3.value),
+                "dop": copy.deepcopy(dop),
+                "dolp": copy.deepcopy(dolp),
+                "docp": copy.deepcopy(docp),
+                "power_pol": copy.deepcopy(power_pol),
+                "power_upol": copy.deepcopy(power_upol)}
 
     def close(self):
         """
