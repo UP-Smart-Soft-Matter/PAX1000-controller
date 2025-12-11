@@ -85,7 +85,7 @@ class PAX1000:
         s3 = c_double()
         self.__lib.TLPAX_getStokes(self.__instrumentHandle, scanID.value, byref(s0), byref(s1), byref(s2), byref(s3))
 
-        self.__lib.TLPAX_releaseScan(self.__instrumentHandle, scanID)
+        self.__lib.TLPAX_releaseScan(self.__instrumentHandle, scanID.value)
         time.sleep(0.05)
 
         dop = math.sqrt(((s1.value**2)+(s2.value**2)+(s3.value**2))/(s0.value**2))
