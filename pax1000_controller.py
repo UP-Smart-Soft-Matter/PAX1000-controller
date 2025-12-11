@@ -92,7 +92,7 @@ class PAX1000:
         dop = math.sqrt(((s1.value**2)+(s2.value**2)+(s3.value**2))/(s0.value**2))
         dolp = math.sqrt(((s1.value**2)+(s2.value**2))/(s0.value**2))
         docp = math.sqrt((s3.value**2)/(s0.value**2))
-        power_pol = s1.value + s2.value + s3.value
+        power_pol = abs(s1.value) + abs(s2.value) + abs(s3.value)
         power_upol = s0.value - power_pol
 
 
