@@ -20,24 +20,29 @@ class PAX1000:
                  measurement_mode=9,
                  dll_lib_path="C:\Program Files\IVI Foundation\VISA\Win64\Bin\TLPAX_64.dll"):
         """
-        Interface for controlling and reading data from a PAX1000 polarization measurement device.
+                Python wrapper for a Thorlabs PAX1000 polarimeter using the vendor DLL.
 
-        Parameters:
-            wavelength (float), optional: Wavelength in meters for the measurement (default: 491e-9 m).
-            base_scan_rate (float), optional: Scan rate in Hz (default: 60 Hz).
-            measurement_mode (int), optional: Measurement mode of the PAX1000 (default: 9).
+                Initializes the device, applies measurement configuration, and prepares
+                the instrument for continuous polarization scans.
 
-                IDLE: Value 0, no measurements are taken.
-                H512: Value 1, 0.5 revolutions for one measurement, 512 points for FFT
-                H1024:Value 2, 0.5 revolutions for one measurement, 1024 points for FFT
-                H2048:Value 3. 0.5 revolutions for one measurement, 2048 points for FFT
-                F512:Value 4, 1 revolution for one measurement, 512 points for FFT
-                F1024:Value 5, 1 revolution for one measurement, 1024 points for FFT
-                F2048:Value 6, 1 revolution for one measurement, 2048 points for FFT
-                D512:Value 7, 2 revolutions for one measurement, 512 points for FFT
-                D1024:Value 8, 2 revolutions for one measurement, 1024 points for FFT
-                D2048:Value 9, 2 revolutions for one measurement, 2048 points for FFT
-        """
+                Args:
+                    wavelength (float, optional): Optical wavelength in meters used for analysis.
+                    base_scan_rate (float, optional): Fundamental scan rate in Hz configured on the device.
+                    measurement_mode (int, optional): Acquisition mode defining rotation count and FFT resolution.
+
+                        0  – IDLE, no acquisition
+                        1  – H512, half rotation, 512-point FFT
+                        2  – H1024, half rotation, 1024-point FFT
+                        3  – H2048, half rotation, 2048-point FFT
+                        4  – F512, full rotation, 512-point FFT
+                        5  – F1024, full rotation, 1024-point FFT
+                        6  – F2048, full rotation, 2048-point FFT
+                        7  – D512, double rotation, 512-point FFT
+                        8  – D1024, double rotation, 1024-point FFT
+                        9  – D2048, double rotation, 2048-point FFT
+
+                    dll_lib_path (str): Absolute path to the TLPAX 64-bit DLL.
+                """
         if measurement_mode in range(1, 4):
             scan_rate_multiplier = 1
         elif measurement_mode in range(4, 7):
@@ -96,12 +101,19 @@ class PAX1000:
 
     def measure(self):
         """
-        Retrieves the latest polarization measurement from the PAX1000.
+        Acquires the most recent polarization scan from the instrument.
 
-        Performs a single measurement, returning the azimuth and ellipticity in degrees.
+        Reads azimuth, ellipticity, and Stokes parameters from the latest completed
+        scan, computes polarization metrics, and returns all values in a dictionary.
 
         Returns:
-            tuple: (azimuth, ellipticity) in degrees.
+            dict:
+                azimuth (float): Polarization azimuth angle in degrees
+                ellipticity (float): Polarization ellipticity angle in degrees
+                S0–S3 (float): Stokes parameters
+                dop (float): Degree of polarization
+                dolp (float): Degree of linear polarization
+                docp (float): Degree of circular polarization
         """
         scanID = c_int()
         self.__lib.TLPAX_getLatestScan(self.__instrumentHandle, byref(scanID))
@@ -136,6 +148,9 @@ class PAX1000:
 
     def close(self):
         """
-        Closes the connection to the PAX1000 device and releases resources.
+        Terminates communication with the polarimeter.
+
+        Releases the instrument handle and unloads internal resources associated
+        with the active PAX1000 session.
         """
         self.__lib.TLPAX_close(self.__instrumentHandle)

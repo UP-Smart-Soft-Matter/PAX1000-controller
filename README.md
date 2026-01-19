@@ -57,13 +57,12 @@ pip install pax1000_controller
 ### Basic Example
 
 ```python
-from pax1000 import PAX1000
+from pax1000_controller import PAX1000
 
-pax = PAX1000(
-    wavelength=491e-9,
-    scan_rate=60,
-    measurement_mode=9
-)
+pax = PAX1000(wavelength=491e-9,
+              base_scan_rate=60,
+              measurement_mode=9,
+              dll_lib_path="C:\Program Files\IVI Foundation\VISA\Win64\Bin\TLPAX_64.dll")
 
 data = pax.measure()
 print(data)
@@ -78,7 +77,7 @@ pax.close()
 ### Constructor
 
 ```python
-PAX1000(wavelength=491e-9, scan_rate=60, measurement_mode=9)
+PAX1000(wavelength=491e-9, scan_rate=60, measurement_mode=9, dll_lib_path="C:\Program Files\IVI Foundation\VISA\Win64\Bin\TLPAX_64.dll")
 ```
 
 Parameters:
@@ -86,11 +85,24 @@ Parameters:
 - `wavelength` (float): Measurement wavelength in meters  
 - `scan_rate` (float): Scan rate in Hz  
 - `measurement_mode` (int): PAX1000 measurement mode  
+- `dll_lib_path` (str): Path to the TLPAX_64.dll
 
 The constructor:
 - Searches for connected PAX1000 devices
 - Connects to the first available device
 - Applies the provided configuration
+
+Measurement modes: 
+- 0  – IDLE, no acquisition
+- 1  – H512, half rotation, 512-point FFT
+- 2  – H1024, half rotation, 1024-point FFT
+- 3  – H2048, half rotation, 2048-point FFT
+- 4  – F512, full rotation, 512-point FFT
+- 5  – F1024, full rotation, 1024-point FFT
+- 6  – F2048, full rotation, 2048-point FFT
+- 7  – D512, double rotation, 512-point FFT
+- 8  – D1024, double rotation, 1024-point FFT
+- 9  – D2048, double rotation, 2048-point FFT
 
 ---
 
