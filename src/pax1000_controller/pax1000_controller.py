@@ -14,17 +14,46 @@ class InitialisationError(Exception):
 
 
 class PAX1000:
-    def __init__(self, wavelength=491e-9, scan_rate=60, measurement_mode=9):
+    def __init__(self,
+                 wavelength=491e-9,
+                 base_scan_rate=60,
+                 measurement_mode=9,
+                 dll_lib_path="C:\Program Files\IVI Foundation\VISA\Win64\Bin\TLPAX_64.dll"):
         """
         Interface for controlling and reading data from a PAX1000 polarization measurement device.
 
         Parameters:
             wavelength (float), optional: Wavelength in meters for the measurement (default: 491e-9 m).
-            scan_rate (float), optional: Scan rate in Hz (default: 60 Hz).
+            base_scan_rate (float), optional: Scan rate in Hz (default: 60 Hz).
             measurement_mode (int), optional: Measurement mode of the PAX1000 (default: 9).
+
+                IDLE: Value 0, no measurements are taken.
+                H512: Value 1, 0.5 revolutions for one measurement, 512 points for FFT
+                H1024:Value 2, 0.5 revolutions for one measurement, 1024 points for FFT
+                H2048:Value 3. 0.5 revolutions for one measurement, 2048 points for FFT
+                F512:Value 4, 1 revolution for one measurement, 512 points for FFT
+                F1024:Value 5, 1 revolution for one measurement, 1024 points for FFT
+                F2048:Value 6, 1 revolution for one measurement, 2048 points for FFT
+                D512:Value 7, 2 revolutions for one measurement, 512 points for FFT
+                D1024:Value 8, 2 revolutions for one measurement, 1024 points for FFT
+                D2048:Value 9, 2 revolutions for one measurement, 2048 points for FFT
         """
+        if measurement_mode in range(1, 4):
+            scan_rate_multiplier = 1
+        elif measurement_mode in range(4, 7):
+            scan_rate_multiplier = 0.5
+        elif measurement_mode in range(7, 10):
+            scan_rate_multiplier = 0.25
+        else:
+            raise InitialisationError("Invalid measurement mode.")
+
+        self.base_scan_rate = base_scan_rate
+        self.actual_scan_rate = base_scan_rate * scan_rate_multiplier
+
+        self.__sleep_time = 1/self.actual_scan_rate
+
         # Load DLL library
-        self.__lib = cdll.LoadLibrary("C:\Program Files\IVI Foundation\VISA\Win64\Bin\TLPAX_64.dll")
+        self.__lib = cdll.LoadLibrary(dll_lib_path)
 
         # Detect and initialize PAX1000 device
         self.__instrumentHandle = c_ulong()
@@ -52,7 +81,7 @@ class PAX1000:
         # Make settings
         self.__lib.TLPAX_setMeasurementMode(self.__instrumentHandle, measurement_mode)
         self.__lib.TLPAX_setWavelength(self.__instrumentHandle, c_double(wavelength))
-        self.__lib.TLPAX_setBasicScanRate(self.__instrumentHandle, c_double(scan_rate))
+        self.__lib.TLPAX_setBasicScanRate(self.__instrumentHandle, c_double(base_scan_rate))
 
         # Check settings
         wavelength = c_double()
@@ -87,7 +116,8 @@ class PAX1000:
         self.__lib.TLPAX_getStokes(self.__instrumentHandle, scanID.value, byref(s0), byref(s1), byref(s2), byref(s3))
 
         self.__lib.TLPAX_releaseScan(self.__instrumentHandle, scanID.value)
-        time.sleep(0.05)
+
+        time.sleep(self.__sleep_time)
 
         dop = math.sqrt(((s1.value**2)+(s2.value**2)+(s3.value**2))/(s0.value**2))
         dolp = math.sqrt(((s1.value**2)+(s2.value**2))/(s0.value**2))
